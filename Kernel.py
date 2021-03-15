@@ -45,9 +45,19 @@ VERBS = {"ER", "OK"}
 clients = {}
 
     
-    # utilidades del servidor---------------------------------------
+    # utilidades del kernel---------------------------------------
  
+def cliente(msg):
+    print(f"CLIENT: {src} nos envia el mensaje {msg}")
 
+def archivo(msg):
+    client=clients["FILE"]
+    print(msg)
+    client.send(msg.encode(FORMAT))
+
+def app(msg):
+    client=clients["APP"]
+    client.send(msg.encode(FORMAT))
     #---------------------------------------------------------------
 
  
@@ -68,16 +78,34 @@ def kernel(client, addr):
             if  msg.startswith("APP") and not ((conn&0b001)==0b001):
                 conn= conn|0b001
                 print("client connected")
-                clients["app"]=client
+                clients["APP"]=client
 
             elif msg.startswith("FILE") and not ((conn&0b010)==0b010):
                 conn= conn|0b010
-                clients["file"]=client
+                clients["FILE"]=client
             elif msg.startswith("CLIENT")  and not ((conn&0b010)==0b100):
                 conn= conn|0b100                
-                clients["client"]=client
+                clients["CLIENT"]=client
 
-            print(conn)
+        else:
+            print("entro")
+            tokens=msg.split(",")
+            src=tokens[1][4:]
+            dst=tokens[2][4:]
+            msgg=tokens[3][4:]
+            if dst=="CLIENT":
+                cliente(msg)
+            elif dst=="FILE":
+                archivo(msg)
+            elif dst=="APP":
+                app(msg)
+            
+            clients["CLIENT"].send("destino invalido".encode(FORMAT))
+            print("")
+                
+
+
+            
         
         
         

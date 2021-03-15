@@ -17,6 +17,10 @@ def write():
     msg="CLIENT"
     client.send(msg.encode(FORMAT))
     while True:
+        DST=input("Destiny: ")
+        MSG=input("message: ")
+        a="cmd"
+        msg=f"cmd:info,src:CLIENT,dst:{DST},msg:{MSG}"
         client.send(msg.encode(FORMAT))
         res = client.recv(HEADER).decode(FORMAT)
         print(res)

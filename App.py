@@ -17,8 +17,8 @@ def write():
     msg="APP"
     client.send(msg.encode(FORMAT))
     while True:
-        client.send(msg.encode(FORMAT))
         res = client.recv(HEADER).decode(FORMAT)
+        
         print(res)
 
 
