@@ -50,6 +50,9 @@ clients = {}
 def cliente(msg):
     print(f"CLIENT: {src} nos envia el mensaje {msg}")
 
+def log():
+    print("aqui deberia ir el contenido del mensaje a guardar")
+
 def archivo(msg):
     client=clients["FILE"]
     print(msg)
@@ -99,8 +102,10 @@ def kernel(client, addr):
                 archivo(msg)
             elif dst=="APP":
                 app(msg)
+            elif dst=="KERNEL":
+                print("aqui se llamara un metodo que guarda algo en el log y le notifica al usuario")
             
-            clients["CLIENT"].send("destino invalido".encode(FORMAT))
+            clients["CLIENT"].send("listo".encode(FORMAT))
             print("")
                 
 

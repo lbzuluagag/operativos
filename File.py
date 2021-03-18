@@ -1,7 +1,7 @@
 import socket
 import threading
 import os
-
+from datetime import date
 HEADER = 1024
 PORT = 5050
 FORMAT = 'utf-8'
@@ -10,7 +10,6 @@ SERVER = socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER,PORT)
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
-
 def exist(folder):
     if folder in os.listdir():
         return True
@@ -19,14 +18,12 @@ def exist(folder):
 
 def log(log):
         print("this message is a log")
-        log=msg[4:]
+        log=log+f"->{date.today()}"
         f = open("log.txt","a")
-        f.write(log)
+        f.write(log+ "\n")
+        f.close()
 
 def write():
-    print("Sending message")
-    msg="FILE"
-    client.send(msg.encode(FORMAT))
     while True:
         
         res = client.recv(HEADER).decode(FORMAT)
@@ -36,7 +33,7 @@ def write():
         dst=tokens[2][tokens[2].find(":")+1:]
         msg=tokens[3][tokens[3].find(":")+1:]
         print(msg)
-        if msg.startswith("LOG:"):
+        if msg.startswith("LOG"):
             log(msg)
         elif msg.startswith("CRE"):
             folder=msg[4:]
@@ -65,3 +62,6 @@ def write():
 #Este hilo solo se preocupa de el metodo write
 write_thread = threading.Thread(target=write)
 write_thread.start()
+print("Sending message")
+msg="FILE"
+client.send(msg.encode(FORMAT))
