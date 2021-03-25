@@ -5,7 +5,6 @@ import threading
 HEADER = 1024
 PORT = 5050
 FORMAT = 'utf-8'
-DISCONNECT_MESSAGE = "!DISCONNECT"
 SERVER = socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER,PORT)
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -23,6 +22,7 @@ def write():
         msg=f"cmd:info,src:CLIENT,dst:{DST},msg:{MSG}"
         client.send(msg.encode(FORMAT))
         res = client.recv(HEADER).decode(FORMAT)
+        print("-------------")
         print(res)
 
 

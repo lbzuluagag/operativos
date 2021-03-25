@@ -1,7 +1,8 @@
 import socket
 import threading
+import random
 import os
-from datetime import date
+from datetime import datetime
 HEADER = 1024
 PORT = 5050
 FORMAT = 'utf-8'
@@ -10,6 +11,7 @@ SERVER = socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER,PORT)
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
+
 def exist(folder):
     if folder in os.listdir():
         return True
@@ -18,22 +20,35 @@ def exist(folder):
 
 def log(log):
         print("this message is a log")
-        log=log+f"->{date.today()}"
+        log=log+f"->{datetime.now()}"
         f = open("log.txt","a")
         f.write(log+ "\n")
         f.close()
 
 def write():
+    
     while True:
-        
+        MSG="INFOO"
         res = client.recv(HEADER).decode(FORMAT)
-        
+        typ="info"
         tokens=res.split(",")
+        lg=tokens[0][tokens[0].find(":")+1:]
         src=tokens[1][tokens[1].find(":")+1:]
         dst=tokens[2][tokens[2].find(":")+1:]
         msg=tokens[3][tokens[3].find(":")+1:]
         print(msg)
-        if msg.startswith("LOG"):
+        rand=random.randint(0, 9)
+        if rand<=1:
+            print("mensaje error"+str(rand))
+            typ="erro"
+            MSG="ERROR"
+
+        elif rand>2 and rand<=4:
+            print("Esta ocupado, intenta mas tarde"+str(rand))
+            typ="wait"
+            MSG="WAIT" 
+
+        elif (msg.startswith("LOG") or lg.startswith("LOG")):
             log(msg)
         elif msg.startswith("CRE"):
             folder=msg[4:]
@@ -51,7 +66,7 @@ def write():
             else:
                 print(f"Folder {folder} does not exist" )
 
-
+        client.send(f"cmd:{typ},src:FILE,dst:CLIENT,msg:{MSG}".encode(FORMAT))
 
 
 #iniciamos los hilos

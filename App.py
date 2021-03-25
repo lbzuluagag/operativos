@@ -1,6 +1,6 @@
 import socket
 import threading
-
+import random
 
 HEADER = 1024
 PORT = 5050
@@ -16,91 +16,102 @@ def startApp(msg):
     global app
     if msg.startswith("AP1"):
         if  app&0b0010==0b0010:
-            print("App1 already in use")
+            return "App1 already in use"
         else:
-            print("Starting app1...")
             app=app|0b0010
-            print("...App1 started")
+            return "...App1 started"
     
     if msg.startswith("AP2"):
         if  app&0b0100==0b0100:
-            print("App2 already in use")
+            return "App2 already in use"
         else:
-            print("Starting app2...")
             app=app|0b0100
-            print("...App2 started")
+            return "...App2 started"
 
     if msg.startswith("AP3"):
         if  app&0b1000==0b1000:
-            print("App3 already in use")
+            return "App3 already in use"
         else:
-            print("Starting app3...")
             app=app|0b1000
-            print("...App3 started")
+            return "...App3 started"
     
 
 def stopApp(msg):
     global app
     if msg.startswith("ST1"):
         if  app&0b0010==0b0010:
-            print("Stopping app1...")
             app=app&0b1101
-            print("...App1 stopped")
+            return "...App1 stopped"
         else:
-            print("App1 hasn't been started")
+            return "App1 hasn't been started"
            
     if msg.startswith("ST2"):
         if  app&0b0100==0b0100:
-            print("Stopping app2...")
             app=app&0b1011
-            print("...App2 stopped")
+            return "...App2 stopped"
         else:
-            print("App2 hasn't been started")  
+            return "App2 hasn't been started" 
 
     if msg.startswith("ST3"):
         if  app&0b1000==0b1000:
-            print("Stopping app3...")
+            
             app=app&0b0111
-            print("...App3 stopped")
+            return "...App3 stopped"
         else:
-            print("App3 hasn't been started")  
+            return "App3 hasn't been started"  
 
 
 def write():
     global app
     while True:
         res = client.recv(HEADER).decode(FORMAT)
-        
+        typ="info"
         tokens=res.split(",")
         src=tokens[1][tokens[1].find(":")+1:]
         dst=tokens[2][tokens[2].find(":")+1:]
         msg=tokens[3][tokens[3].find(":")+1:]
         print(msg)
-        if msg.startswith("INI"):
+        rand=random.randint(0, 9)#
+        if rand<=3:
+            print("mensaje error")
+            typ="erro"
+            MSG="ERROR"
+
+        elif rand>3 and rand<=6:
+            print("Esta ocupado, intenta mas tarde")
+            typ="wait"
+            MSG="WAIT"       
+
+
+        elif msg.startswith("INI") and rand > 6:
             if app&0b0001==0b0001:
-                print("app module already active")
+                MSG="app module already active"
             else:
                 #poner un delay aqui luego
                 print("Starting app module...")
                 app= 0b0001
                 print("...App module started")
+                MSG="APP MODULE STARTED"
         elif msg.startswith("BRK"):
             if app==0b0000:
                 print("app module hasn't been initiated")
             else:
-                print("stoping app module...")
+                print("stopping app module...")
                 #delay mas adelante
                 app=0
-                print("...Stoped app module")
+                print("...Stopped app module")
+                MSG="APP MODULE STOPED"
         if app&0b0001==0b0001:    
             if msg.startswith("AP"):
-                startApp(msg)
+                MSG = startApp(msg)
             elif msg.startswith("ST"):
-                stopApp(msg)
+                MSG = stopApp(msg)
         
 
         else:
             print("App module hasn't been started")
+        
+        client.send(f"cmd:{typ},src:APP,dst:CLIENT,msg:{MSG}".encode(FORMAT))
 
 
 
