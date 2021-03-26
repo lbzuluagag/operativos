@@ -67,41 +67,42 @@ def write():
         res = client.recv(HEADER).decode(FORMAT)
         typ="info"
         tokens=res.split(",")
+        cmd=tokens[0][4:]
         src=tokens[1][tokens[1].find(":")+1:]
         dst=tokens[2][tokens[2].find(":")+1:]
         msg=tokens[3][tokens[3].find(":")+1:]
-        print(msg)
         rand=random.randint(0, 9)#
-        if rand<=3:
+        if cmd =="erro":
+            break
+        
+        elif rand==1:
             print("mensaje error")
             typ="erro"
             MSG="ERROR"
 
-        elif rand>3 and rand<=6:
+        elif rand==2:
             print("Esta ocupado, intenta mas tarde")
             typ="wait"
             MSG="WAIT"       
 
 
-        elif msg.startswith("INI") and rand > 6:
+        elif msg.startswith("INI"):
             if app&0b0001==0b0001:
                 MSG="app module already active"
             else:
                 #poner un delay aqui luego
-                print("Starting app module...")
                 app= 0b0001
-                print("...App module started")
                 MSG="APP MODULE STARTED"
         elif msg.startswith("BRK"):
             if app==0b0000:
-                print("app module hasn't been initiated")
+                MSG="app module hasn't been initiated"
             else:
-                print("stopping app module...")
+                MSG= "stopping app module..."
                 #delay mas adelante
                 app=0
-                print("...Stopped app module")
+                MSG="...Stopped app module"
                 MSG="APP MODULE STOPED"
-        if app&0b0001==0b0001:    
+        elif app&0b0001==0b0001:    
             if msg.startswith("AP"):
                 MSG = startApp(msg)
             elif msg.startswith("ST"):
@@ -109,8 +110,9 @@ def write():
         
 
         else:
-            print("App module hasn't been started")
         
+            MSG="App module hasn't been started"
+        print(MSG)
         client.send(f"cmd:{typ},src:APP,dst:CLIENT,msg:{MSG}".encode(FORMAT))
 
 

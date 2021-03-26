@@ -28,45 +28,53 @@ def log(log):
 def write():
     
     while True:
-        MSG="INFOO"
         res = client.recv(HEADER).decode(FORMAT)
         typ="info"
+        MSG=""
         tokens=res.split(",")
-        lg=tokens[0][tokens[0].find(":")+1:]
+        cmd=tokens[0][tokens[0].find(":")+1:]
         src=tokens[1][tokens[1].find(":")+1:]
         dst=tokens[2][tokens[2].find(":")+1:]
         msg=tokens[3][tokens[3].find(":")+1:]
         print(msg)
+        if typ =="erro":
+            print("shutdown")
+            break
         rand=random.randint(0, 9)
-        if rand<=1:
-            print("mensaje error"+str(rand))
+        if rand==1:
+            print("error message")
             typ="erro"
             MSG="ERROR"
-
-        elif rand>2 and rand<=4:
-            print("Esta ocupado, intenta mas tarde"+str(rand))
+            client.send(f"cmd:{typ},src:FILE,dst:CLIENT,msg:{msg}".encode(FORMAT))
+            break
+        elif rand==2:
+            print("Esta ocupado, intenta mas tarde")
             typ="wait"
             MSG="WAIT" 
 
-        elif (msg.startswith("LOG") or lg.startswith("LOG")):
+        elif (msg.startswith("LOG") or cmd.startswith("LOG")):
             log(msg)
+            client.send(f"cmd:{typ},src:FILE,dst:CLIENT,msg:{msg}".encode(FORMAT))
         elif msg.startswith("CRE"):
             folder=msg[4:]
             if exist(folder):
-                print(f"Folder {folder} already exists")
+                MSG=f"Folder {folder} already exists"
             else:
                 os.system(f'mkdir {folder}')
-                print(f"Creating a folder with the name {folder}")
+                MSG=f"Creating a folder with the name {folder}"
+            print(MSG)
+            client.send(f"cmd:{typ},src:FILE,dst:CLIENT,msg:{msg}".encode(FORMAT))
+            
                 
         elif msg.startswith("DEL"):
             folder=msg[4:]
             if exist(folder):
                 os.system(f'rmdir {folder}')
-                print(f"Deleting a folder with the name {folder}")
+                MSG=f"Deleting a folder with the name {folder}"
             else:
-                print(f"Folder {folder} does not exist" )
-
-        client.send(f"cmd:{typ},src:FILE,dst:CLIENT,msg:{MSG}".encode(FORMAT))
+                MSG=f"Folder {folder} does not exist" 
+            print(MSG)
+            client.send(f"cmd:{typ},src:FILE,dst:CLIENT,msg:{msg}".encode(FORMAT))
 
 
 #iniciamos los hilos

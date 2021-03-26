@@ -22,8 +22,16 @@ def write():
         msg=f"cmd:info,src:CLIENT,dst:{DST},msg:{MSG}"
         client.send(msg.encode(FORMAT))
         res = client.recv(HEADER).decode(FORMAT)
-        print("-------------")
-        print(res)
+        tokens=res.split(",")
+        cmd=tokens[0][4:]
+        src=tokens[1][tokens[1].find(":")+1:]
+        dst=tokens[2][tokens[2].find(":")+1:]
+        msg=tokens[3][tokens[3].find(":")+1:]
+        if cmd =="erro":
+            print(res)
+            break
+        else:
+            print(res)
 
 
 

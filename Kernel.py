@@ -3,7 +3,7 @@ import threading
 import subprocess
 import time
 import random
-
+import sys
 # metodo para enviar mensaje a todos los usuarios conectados
 # pendiente mas adelante poner que reciba a que sala debe hacer el broadcast
 def broadcast(msg):
@@ -72,59 +72,62 @@ conn=0 #0b001
 def kernel(client, addr):
     global conn
     print("--------------")
-    while True: 
-        time.sleep(random.randint(2, 3))
-        #time.sleep(100)
+    try:
+        while True: 
+            time.sleep(random.randint(2, 3))
+            #time.sleep(100)
 
-        msg = None
-        try:
-            msg=client.recv(HEADER).decode(FORMAT)
-        except: 
-            print("error recieving from client")
-            return 1
+            msg = None
+            try:
+                msg=client.recv(HEADER).decode(FORMAT)
+            except: 
+                print("error recieving from client")
+                break
 
-        if  conn !=0b111:
-            
-            if  msg.startswith("APP") and not ((conn&0b001)==0b001):
-                conn= conn|0b001
-                print("app connected")
-                clients["APP"]=client
+            if  conn !=0b111:
+                
+                if  msg.startswith("APP") and not ((conn&0b001)==0b001):
+                    conn= conn|0b001
+                    print("app connected")
+                    clients["APP"]=client
 
-            elif msg.startswith("FILE") and not ((conn&0b010)==0b010):
-                conn= conn|0b010
-                clients["FILE"]=client
-            elif msg.startswith("CLIENT")  and not ((conn&0b010)==0b100):
-                conn= conn|0b100                
-                clients["CLIENT"]=client
-        else:
-            tokens=msg.split(",")
-            cmd=tokens[0][4:]
-            src=tokens[1][4:]
-            dst=tokens[2][4:]
-            msgg=tokens[3][4:]
-            
-            log=f"cmd:LOG,src:CLIENT,dst:{dst},{msgg}"
-            #
-            if src=="CLIENT":
-                clients["FILE"].send(log.encode(FORMAT))
-                if dst=="CLIENT":
-                    cliente(msg)
-                elif dst=="FILE":
-                    print("esta mierda deberia estar llegando aqui")
-                    archivo(msg)
-                elif dst=="APP":
-                    app(msg)
-                elif dst=="KERNEL":
-                    print("aqui se llamara un metodo que guarda algo en el log y le notifica al usuario")
+                elif msg.startswith("FILE") and not ((conn&0b010)==0b010):
+                    conn= conn|0b010
+                    clients["FILE"]=client
+                elif msg.startswith("CLIENT")  and not ((conn&0b010)==0b100):
+                    conn= conn|0b100                
+                    clients["CLIENT"]=client
             else:
-                if cmd=="info":
-                    cliente(msg)
-                elif cmd=="wait":
-                    print("luis no tiene paciencia")
-                    cliente(msg)
+                tokens=msg.split(",")
+                cmd=tokens[0][4:]
+                src=tokens[1][4:]
+                dst=tokens[2][4:]
+                msgg=tokens[3][4:]
+                
+                log=f"cmd:LOG,src:CLIENT,dst:{dst},{msgg}"
+                #
+                if src=="CLIENT":
+                    clients["FILE"].send(log.encode(FORMAT))
+                    if dst=="CLIENT":
+                        cliente(msg)
+                    elif dst=="FILE":
+                        archivo(msg)
+                    elif dst=="APP":
+                        app(msg)
                 else:
-                    print("luis la cago")
-                    cliente(msg)
+                    if cmd=="info":
+                        cliente(msg)
+                    elif cmd=="wait":
+                        cliente(msg)
+                    else:
+                        archivo(msg)
+                        cliente(msg)
+                        app(msg)
+                        break
+    except:
+        print("something went wrong")
+        sys.exit()
+
  
                 
 
